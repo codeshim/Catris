@@ -2,6 +2,7 @@ using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
 
+
 public class BlockController : MonoBehaviour
 {
     public Unit Pos = new Unit();
@@ -9,7 +10,7 @@ public class BlockController : MonoBehaviour
     // Test Values
     public bool FallOn = false;
     float FallCount = 0.0f;
-    float FallSec = 1.0f;
+    float FallSec = 0.2f;
 
     // Start is called before the first frame update
     void Start()
@@ -20,46 +21,7 @@ public class BlockController : MonoBehaviour
     // Update is called once per frame
     void Update()
     {
-        if (FallOn)
-        {
-            if (Input.GetKeyDown(KeyCode.LeftArrow) && Pos.XPos > 0)
-            {
-                if (!IsXBlocked((Pos.XPos - 1), Pos.YPos))
-                {
-                    Pos.XPos--;
-                    UpdatePos();
-                }
-            }
 
-            if (Input.GetKeyDown(KeyCode.RightArrow) && Pos.XPos < BlockManager.XSize)
-            {
-                if (!IsXBlocked((Pos.XPos + 1), Pos.YPos))
-                {
-                    Pos.XPos++;
-                    UpdatePos();
-                }
-            }
-
-            // Falling Over Time
-            FallCount += Time.deltaTime;
-            if (FallCount >= FallSec)
-            {
-                if (IsYBlocked(Pos.XPos, (Pos.YPos - 1)) || Pos.YPos <= 0)
-                {
-                    // Stacking On Block or Bottom
-                    FallCount = 0.0f;
-                    SetBlocked(Pos);
-                    FallOn = false;
-                }
-                else
-                {
-                    // Falling
-                    Pos.YPos--;
-                    UpdatePos();
-                    FallCount = 0.0f;
-                }
-            }
-        }
     }
 
     public void UpdatePos()
@@ -105,7 +67,7 @@ public class BlockController : MonoBehaviour
         return isBlocked;
     }
 
-    public void SetBlocked(Unit Pos)
+    public void SetBlocked()
     {
         for (int i = 0; i < BlockManager.Spaces.Length; i++)
         {

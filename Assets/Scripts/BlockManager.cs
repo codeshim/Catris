@@ -35,10 +35,12 @@ public class BlockManager : MonoBehaviour
     public static Space[] Spaces = new Space[XSize * YSize];
     //public static ArrayList Spaces = new ArrayList();
 
-    public GameObject BlockPrefab = null;
-    BlockController CurBlock = null;
+    //public GameObject BlockPrefab = null;
+    BlockGroupClass CurBlock = null;
 
     Unit StartUnit = new Unit();
+
+    BlockGroupClass Test = null;
 
     // Start is called before the first frame update
     void Start()
@@ -51,24 +53,22 @@ public class BlockManager : MonoBehaviour
     // Update is called once per frame
     void Update()
     {
-        if (CurBlock != null && !CurBlock.FallOn)
+        if (!CurBlock.FallOn)
         {
             SpawnBlock();
         }
+        else
+        {
+            CurBlock.Update();
+        }
+
     }
 
     void SpawnBlock()
     {
-        if (BlockPrefab == null) return;
-
-        GameObject tempBlock = (GameObject)Instantiate(BlockPrefab,
-            new Vector3(0, 0, 0), Quaternion.identity);
-        BlockController tempBlockCtlr = tempBlock.GetComponent<BlockController>();
-        tempBlockCtlr.Pos.NewPos(StartUnit);
-        tempBlockCtlr.UpdatePos();
-        tempBlockCtlr.FallOn = true;
-        CurBlock = tempBlockCtlr;
-        //Blocks.Add(tempBlockCtlr);
+        Debug.Log("Spawn!");
+        int ranVal = Random.Range(0, (int)BlockShape.Size);
+        CurBlock = new BlockGroupClass((BlockShape)ranVal, StartUnit);
     }
 
 
@@ -86,12 +86,5 @@ public class BlockManager : MonoBehaviour
                 index++;
             }
         }
-
-        //Debug.Log(index);
-
-        //for (int i = 0; i < Spaces.Length; i++)
-        //{
-        //    Debug.Log("(" + Spaces[i].Position.XPos + ", " + Spaces[i].Position.YPos + ")");
-        //}
     }
 }
