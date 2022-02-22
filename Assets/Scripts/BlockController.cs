@@ -6,6 +6,8 @@ using UnityEngine;
 public class BlockController : MonoBehaviour
 {
     public Unit Pos = new Unit();
+    public BlockGroup Group;
+    public Unit RelativePos = new Unit();
 
     // Test Values
     public bool FallOn = false;
@@ -15,7 +17,7 @@ public class BlockController : MonoBehaviour
     // Start is called before the first frame update
     void Start()
     {
-        
+
     }
 
     // Update is called once per frame
@@ -26,6 +28,7 @@ public class BlockController : MonoBehaviour
 
     public void UpdatePos()
     {
+        Pos.NewPos(Group.Pos.XPos + RelativePos.XPos, Group.Pos.YPos + RelativePos.YPos);
         this.transform.localPosition = new Vector3(Pos.XPos * BlockManager.UnitSize, Pos.YPos * BlockManager.UnitSize, 0);
     }
 

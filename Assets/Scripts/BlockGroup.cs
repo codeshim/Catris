@@ -1,0 +1,181 @@
+using System.Collections;
+using System.Collections.Generic;
+using UnityEngine;
+
+public enum BlockShape
+{
+    I_Shape,
+    J_Shape,
+    L_Shape,
+    O_Shape,
+    S_Shape,
+    T_Shape,
+    Z_Shape,
+    Size,
+}
+
+public class BlockGroup : MonoBehaviour
+{
+    public Unit Pos = new Unit();
+    public BlockShape Shape = BlockShape.I_Shape;
+    // Parent Falling Values
+    public bool FallOn = false;
+    float FallCount = 0.0f;
+    float FallSec = 0.2f;
+
+    // Child Component
+    public BlockController[] SingleBlockCtrl = new BlockController[4];
+
+    public static BlockGroup Create(GameObject gameObject, BlockShape NewShape, Unit StartPos)
+    {
+        BlockGroup obj = gameObject.AddComponent<BlockGroup>();
+        // BlockGroup Property
+        obj.Pos.XPos = StartPos.XPos;
+        obj.Pos.YPos = StartPos.YPos;
+        obj.Shape = NewShape;
+
+        // SingleBlockCtrl Property
+        obj.SetSingleBlockCtrls();
+
+        // BlockGroup Activity
+        obj.FallOn = true;
+        return obj;
+    }
+
+    public void SetSingleBlockCtrls()
+    {
+        GameObject ChildPrefab = Resources.Load<GameObject>("BlockPivot");
+        for (int i = 0; i < SingleBlockCtrl.Length; i++)
+        {
+            GameObject Child = (GameObject)Instantiate(ChildPrefab, new Vector3(0, 0, 0), Quaternion.identity);
+            SingleBlockCtrl[i] = Child.GetComponent<BlockController>();
+            SingleBlockCtrl[i].Group = this;
+        }
+        switch (Shape)
+        {
+            case BlockShape.I_Shape:
+                SingleBlockCtrl[0].RelativePos.NewPos(0, 0);
+                SingleBlockCtrl[1].RelativePos.NewPos(0, -1);
+                SingleBlockCtrl[2].RelativePos.NewPos(0, 1);
+                SingleBlockCtrl[3].RelativePos.NewPos(0, 2);
+                break;
+
+            case BlockShape.J_Shape:
+                SingleBlockCtrl[0].RelativePos.NewPos(0, 0);
+                SingleBlockCtrl[1].RelativePos.NewPos(-1, 0);
+                SingleBlockCtrl[2].RelativePos.NewPos(0, 1);
+                SingleBlockCtrl[3].RelativePos.NewPos(0, 2);
+                break;
+
+            case BlockShape.L_Shape:
+                SingleBlockCtrl[0].RelativePos.NewPos(0, 0);
+                SingleBlockCtrl[1].RelativePos.NewPos(1, 0);
+                SingleBlockCtrl[2].RelativePos.NewPos(0, 1);
+                SingleBlockCtrl[3].RelativePos.NewPos(0, 2);
+                break;
+
+            case BlockShape.O_Shape:
+                SingleBlockCtrl[0].RelativePos.NewPos(0, 0);
+                SingleBlockCtrl[1].RelativePos.NewPos(1, 0);
+                SingleBlockCtrl[2].RelativePos.NewPos(0, 1);
+                SingleBlockCtrl[3].RelativePos.NewPos(1, 1);
+                break;
+
+            case BlockShape.S_Shape:
+                SingleBlockCtrl[0].RelativePos.NewPos(0, 0);
+                SingleBlockCtrl[1].RelativePos.NewPos(-1, 0);
+                SingleBlockCtrl[2].RelativePos.NewPos(0, 1);
+                SingleBlockCtrl[3].RelativePos.NewPos(1, 1);
+                break;
+
+            case BlockShape.T_Shape:
+                SingleBlockCtrl[0].RelativePos.NewPos(0, 0);
+                SingleBlockCtrl[1].RelativePos.NewPos(0, -1);
+                SingleBlockCtrl[2].RelativePos.NewPos(-1, 0);
+                SingleBlockCtrl[3].RelativePos.NewPos(1, 0);
+                break;
+
+            case BlockShape.Z_Shape:
+                SingleBlockCtrl[0].RelativePos.NewPos(0, 0);
+                SingleBlockCtrl[1].RelativePos.NewPos(1, 0);
+                SingleBlockCtrl[2].RelativePos.NewPos(0, 1);
+                SingleBlockCtrl[3].RelativePos.NewPos(-1, 1);
+                break;
+        }
+        foreach (BlockController singleBlockCtrl in SingleBlockCtrl)
+        {
+            singleBlockCtrl.UpdatePos();
+        }
+    }
+
+
+    // Update is called once per frame
+    public void Update()
+    {
+        //if (FallOn)
+        //{
+        //    if (Input.GetKeyDown(KeyCode.LeftArrow) && Pos.XPos > 0)
+        //    {
+        //        if (!IsXBlocked((Pos.XPos - 1), Pos.YPos))
+        //        {
+        //            Pos.XPos--;
+        //            UpdatePos();
+        //        }
+        //    }
+
+        //    if (Input.GetKeyDown(KeyCode.RightArrow) && Pos.XPos < BlockManager.XSize)
+        //    {
+        //        if (!IsXBlocked((Pos.XPos + 1), Pos.YPos))
+        //        {
+        //            Pos.XPos++;
+        //            UpdatePos();
+        //        }
+        //    }
+
+        // Falling Over Time
+        FallCount += Time.deltaTime;
+        if (FallCount >= FallSec)
+        {
+            bool isBlocked = false;
+            foreach (BlockController singleBlockCtrl in SingleBlockCtrl)
+            {
+                // Hit Bottom
+                if ((Pos.YPos + singleBlockCtrl.RelativePos.YPos) == 0)
+                {
+                    isBlocked = true;
+                    break;
+                }
+
+                // Hit Other Blocks
+                if (singleBlockCtrl.IsYBlocked((Pos.XPos + singleBlockCtrl.RelativePos.XPos),
+                    (Pos.YPos + singleBlockCtrl.RelativePos.YPos) - 1))
+                {
+                    isBlocked = true;
+                    break;
+                }
+            }
+
+            if (isBlocked)
+            {
+                // Stacking On Block or Bottom
+                foreach (BlockController singleBlockCtrl in SingleBlockCtrl)
+                {
+                    singleBlockCtrl.SetBlocked();
+                }
+                FallOn = false;
+                FallCount = 0.0f;
+            }
+            else
+            {
+                // Falling
+                Pos.YPos--;
+                foreach (BlockController singleBlockCtrl in SingleBlockCtrl)
+                {
+                    singleBlockCtrl.UpdatePos();
+                }
+                FallCount = 0.0f;
+            }
+        }
+    }
+}
+
