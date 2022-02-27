@@ -36,11 +36,11 @@ public class BlockManager : MonoBehaviour
     //public static ArrayList Spaces = new ArrayList();
 
     //public GameObject BlockPrefab = null;
-    BlockGroupClass CurBlock = null;
+    BlockGroup CurBlock = null;
 
     Unit StartUnit = new Unit();
 
-    BlockGroupClass Test = null;
+    BlockGroup Test = null;
 
     // Start is called before the first frame update
     void Start()
@@ -66,9 +66,9 @@ public class BlockManager : MonoBehaviour
 
     void SpawnBlock()
     {
-        Debug.Log("Spawn!");
         int ranVal = Random.Range(0, (int)BlockShape.Size);
-        CurBlock = new BlockGroupClass((BlockShape)ranVal, StartUnit);
+        // Factory Method pattern
+        CurBlock = BlockGroup.Create(gameObject, (BlockShape)ranVal, StartUnit);
     }
 
 

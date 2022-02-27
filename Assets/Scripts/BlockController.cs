@@ -6,6 +6,8 @@ using UnityEngine;
 public class BlockController : MonoBehaviour
 {
     public Unit Pos = new Unit();
+    public BlockGroup Group;
+    public Unit RelativePos = new Unit();
 
     // Test Values
     public bool FallOn = false;
@@ -15,7 +17,7 @@ public class BlockController : MonoBehaviour
     // Start is called before the first frame update
     void Start()
     {
-        
+
     }
 
     // Update is called once per frame
@@ -26,16 +28,19 @@ public class BlockController : MonoBehaviour
 
     public void UpdatePos()
     {
+        Pos.NewPos(Group.Pos.XPos + RelativePos.XPos, Group.Pos.YPos + RelativePos.YPos);
         this.transform.localPosition = new Vector3(Pos.XPos * BlockManager.UnitSize, Pos.YPos * BlockManager.UnitSize, 0);
     }
 
     public bool IsXBlocked(int nextXPos, int curYPos)
     {
+        nextXPos += RelativePos.XPos;
+        curYPos += RelativePos.YPos;
         bool isBlocked = false;
         for (int i = 0; i < BlockManager.Spaces.Length; i++)
         {
-            if (BlockManager.Spaces[i].Position.YPos == nextXPos &&
-                BlockManager.Spaces[i].Position.XPos == curYPos)
+            if (BlockManager.Spaces[i].Position.XPos == nextXPos &&
+                BlockManager.Spaces[i].Position.YPos == curYPos)
             {
                 if (BlockManager.Spaces[i].IsTaken)
                 {
@@ -53,8 +58,8 @@ public class BlockController : MonoBehaviour
         bool isBlocked = false;
         for (int i = 0; i < BlockManager.Spaces.Length; i++)
         {
-            if (BlockManager.Spaces[i].Position.YPos == curXPos &&
-                BlockManager.Spaces[i].Position.XPos == nextYPos)
+            if (BlockManager.Spaces[i].Position.XPos == curXPos &&
+                BlockManager.Spaces[i].Position.YPos == nextYPos)
             {
                 if (BlockManager.Spaces[i].IsTaken)
                 {
@@ -71,8 +76,8 @@ public class BlockController : MonoBehaviour
     {
         for (int i = 0; i < BlockManager.Spaces.Length; i++)
         {
-            if (BlockManager.Spaces[i].Position.YPos == Pos.XPos &&
-                BlockManager.Spaces[i].Position.XPos == Pos.YPos)
+            if (BlockManager.Spaces[i].Position.YPos == Pos.YPos &&
+                BlockManager.Spaces[i].Position.XPos == Pos.XPos)
             {
                 BlockManager.Spaces[i].IsTaken = true;
             }
