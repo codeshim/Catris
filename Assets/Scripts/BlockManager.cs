@@ -18,13 +18,18 @@ public class Unit
         XPos = newXPos;
         YPos = newYPos;
     }
+
+    public static string GetUnitKey(int XPos, int YPos)
+    {
+        return XPos.ToString() + "_" + YPos.ToString();
+    }
 }
 
 public class Space
 {
-    public Unit Position = new Unit();
-    public bool IsTaken = false;
+    public BlockController singleBlockControl = null;
 }
+
 
 public class BlockManager : MonoBehaviour
 {
@@ -32,7 +37,7 @@ public class BlockManager : MonoBehaviour
     public static float UnitSize = 0.5f;
     public static int XSize = 9;
     public static int YSize = 18;
-    public static Space[] Spaces = new Space[XSize * YSize];
+    public static Dictionary<string, Space> Spaces = new Dictionary<string, Space>();
     //public static ArrayList Spaces = new ArrayList();
 
     //public GameObject BlockPrefab = null;
@@ -57,11 +62,6 @@ public class BlockManager : MonoBehaviour
         {
             SpawnBlock();
         }
-        else
-        {
-            CurBlock.Update();
-        }
-
     }
 
     void SpawnBlock()
@@ -74,16 +74,12 @@ public class BlockManager : MonoBehaviour
 
     void SpacesInit()
     {
-        int index = 0;
-        for (int y = 0; y < YSize; y++)
+        for (int y = -1; y < YSize + 1; y++)
         {
-            for (int x = 0; x < XSize; x++)
+            for (int x = -1; x < XSize + 1; x++)
             {
-                Space inst = new Space();
-                inst.Position.NewPos(x, y);
-                inst.IsTaken = false;
-                Spaces[index] = inst;
-                index++;
+                Space space = new Space();
+                Spaces.Add(Unit.GetUnitKey(x, y), space);
             }
         }
     }

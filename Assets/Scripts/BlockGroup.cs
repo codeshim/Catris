@@ -21,7 +21,7 @@ public class BlockGroup : MonoBehaviour
     // Parent Falling Values
     public bool FallOn = false;
     float FallCount = 0.0f;
-    float FallSec = 0.8f;
+    float FallSec = 3.0f;
 
     // Child Component
     public BlockController[] SingleBlockCtrl = new BlockController[4];
@@ -58,6 +58,7 @@ public class BlockGroup : MonoBehaviour
                 SingleBlockCtrl[1].RelativePos.NewPos(0, -1);
                 SingleBlockCtrl[2].RelativePos.NewPos(0, 1);
                 SingleBlockCtrl[3].RelativePos.NewPos(0, 2);
+                Pos.YPos -= 3;
                 break;
 
             case BlockShape.J_Shape:
@@ -65,6 +66,7 @@ public class BlockGroup : MonoBehaviour
                 SingleBlockCtrl[1].RelativePos.NewPos(-1, 0);
                 SingleBlockCtrl[2].RelativePos.NewPos(0, 1);
                 SingleBlockCtrl[3].RelativePos.NewPos(0, 2);
+                Pos.YPos -= 3;
                 break;
 
             case BlockShape.L_Shape:
@@ -72,6 +74,7 @@ public class BlockGroup : MonoBehaviour
                 SingleBlockCtrl[1].RelativePos.NewPos(1, 0);
                 SingleBlockCtrl[2].RelativePos.NewPos(0, 1);
                 SingleBlockCtrl[3].RelativePos.NewPos(0, 2);
+                Pos.YPos -= 3;
                 break;
 
             case BlockShape.O_Shape:
@@ -79,6 +82,7 @@ public class BlockGroup : MonoBehaviour
                 SingleBlockCtrl[1].RelativePos.NewPos(1, 0);
                 SingleBlockCtrl[2].RelativePos.NewPos(0, 1);
                 SingleBlockCtrl[3].RelativePos.NewPos(1, 1);
+                Pos.YPos -= 2;
                 break;
 
             case BlockShape.S_Shape:
@@ -86,6 +90,7 @@ public class BlockGroup : MonoBehaviour
                 SingleBlockCtrl[1].RelativePos.NewPos(-1, 0);
                 SingleBlockCtrl[2].RelativePos.NewPos(0, 1);
                 SingleBlockCtrl[3].RelativePos.NewPos(1, 1);
+                Pos.YPos -= 2;
                 break;
 
             case BlockShape.T_Shape:
@@ -93,6 +98,7 @@ public class BlockGroup : MonoBehaviour
                 SingleBlockCtrl[1].RelativePos.NewPos(0, -1);
                 SingleBlockCtrl[2].RelativePos.NewPos(-1, 0);
                 SingleBlockCtrl[3].RelativePos.NewPos(1, 0);
+                Pos.YPos -= 1;
                 break;
 
             case BlockShape.Z_Shape:
@@ -100,6 +106,7 @@ public class BlockGroup : MonoBehaviour
                 SingleBlockCtrl[1].RelativePos.NewPos(1, 0);
                 SingleBlockCtrl[2].RelativePos.NewPos(0, 1);
                 SingleBlockCtrl[3].RelativePos.NewPos(-1, 1);
+                Pos.YPos -= 2;
                 break;
         }
         foreach (BlockController singleBlockCtrl in SingleBlockCtrl)
@@ -116,55 +123,44 @@ public class BlockGroup : MonoBehaviour
         {
             if (Input.GetKeyDown(KeyCode.LeftArrow))
             {
-                Debug.Log("leftPressed");
-                bool isBlocked = false;
-                foreach (BlockController singleBlockCtrl in SingleBlockCtrl)
-                {
-                    // Hit Other Blocks or Sidewall
-                    if ((Pos.XPos + singleBlockCtrl.RelativePos.XPos) <= 0 ||
-                        singleBlockCtrl.IsXBlocked((Pos.XPos - 1), Pos.YPos))
-                    {
-                        isBlocked = true;
-                        break;
-                    }
-                }
-
-                if (!isBlocked)
-                {
-                    Debug.Log("left!");
-                    Pos.XPos--;
-                    Debug.Log(Pos.XPos);
-                    foreach (BlockController singleBlockCtrl in SingleBlockCtrl)
-                    {
-                        singleBlockCtrl.UpdatePos();
-                    }
-                }
+                MoveLeft();
+                CheckLeftBlocked();
             }
 
             if (Input.GetKeyDown(KeyCode.RightArrow))
             {
-                Debug.Log("rightPressed");
-                bool isBlocked = false;
-                foreach (BlockController singleBlockCtrl in SingleBlockCtrl)
-                {
-                    // Hit Other Blocks or Sidewall
-                    if ((Pos.XPos + singleBlockCtrl.RelativePos.XPos) >= BlockManager.XSize ||
-                        singleBlockCtrl.IsXBlocked((Pos.XPos + 1), Pos.YPos))
-                    {
-                        isBlocked = true;
-                        break;
-                    }
-                }
+                MoveRight();
+                CheckRightBlocked();
+            }
 
-                if (!isBlocked)
+            if (Input.GetKeyDown(KeyCode.DownArrow))
+            {
+                MoveDown();
+                CheckYBlocked();
+            }
+
+            if (Input.GetKeyDown(KeyCode.Z))
+            {
+                RotateLeft();
+                CheckLeftBlocked();
+                CheckRightBlocked();
+                CheckYBlocked();
+            }
+
+            if (Input.GetKeyDown(KeyCode.X))
+            {
+                RotateRight();
+                CheckLeftBlocked();
+                CheckRightBlocked();
+                CheckYBlocked();
+            }
+
+            if (Input.GetKeyDown(KeyCode.Space))
+            {
+                while (FallOn)
                 {
-                    Debug.Log("right!");
-                    Pos.XPos++;
-                    Debug.Log(Pos.XPos);
-                    foreach (BlockController singleBlockCtrl in SingleBlockCtrl)
-                    {
-                        singleBlockCtrl.UpdatePos();
-                    }
+                    MoveDown();
+                    CheckYBlocked();
                 }
             }
         }
@@ -173,44 +169,119 @@ public class BlockGroup : MonoBehaviour
         FallCount += Time.deltaTime;
         if (FallCount >= FallSec)
         {
-            bool isBlocked = false;
+            MoveDown();
+            CheckYBlocked();
+            FallCount = 0.0f;
+        }
+
+        foreach (BlockController singleBlockCtrl in SingleBlockCtrl)
+        {
+            singleBlockCtrl.UpdatePos();
+        }
+    }
+
+    public void MoveLeft()
+    {
+        Pos.XPos--;
+    }
+
+    public void MoveRight()
+    {
+        Pos.XPos++;
+    }
+
+    public void MoveDown()
+    {
+        Pos.YPos--;
+    }
+
+
+    public void RotateLeft()
+    {
+        foreach (BlockController singleBlockCtrl in SingleBlockCtrl)
+        {
+            singleBlockCtrl.RotateLeft();
+        }
+    }
+
+    public void RotateRight()
+    {
+        foreach (BlockController singleBlockCtrl in SingleBlockCtrl)
+        {
+            singleBlockCtrl.RotateRight();
+        }
+    }
+
+    public void CheckLeftBlocked()
+    {
+        foreach (BlockController singleBlockCtrl in SingleBlockCtrl)
+        {
+            int XPos = Pos.XPos + singleBlockCtrl.RelativePos.XPos;
+            int YPos = Pos.YPos + singleBlockCtrl.RelativePos.YPos;
+            // wall check
+            if (XPos < 0)
+            {
+                Pos.XPos = Pos.XPos + 1;
+            }
+            // block check
+            if (BlockManager.Spaces[Unit.GetUnitKey(XPos, YPos)].singleBlockControl != null &&
+                BlockManager.Spaces[Unit.GetUnitKey(XPos, YPos)].singleBlockControl.Group != this)
+            {
+                Pos.XPos = Pos.XPos + 1;
+            }
+        }
+    }
+
+    public void CheckRightBlocked()
+    {
+        foreach (BlockController singleBlockCtrl in SingleBlockCtrl)
+        {
+            int XPos = Pos.XPos + singleBlockCtrl.RelativePos.XPos;
+            int YPos = Pos.YPos + singleBlockCtrl.RelativePos.YPos;
+            // wall check
+            if (XPos > BlockManager.XSize)
+            {
+                Pos.XPos = Pos.XPos - 1;
+            }
+            // block check
+            if (BlockManager.Spaces[Unit.GetUnitKey(XPos, YPos)].singleBlockControl != null &&
+                BlockManager.Spaces[Unit.GetUnitKey(XPos, YPos)].singleBlockControl.Group != this)
+            {
+                Pos.XPos = Pos.XPos - 1;
+            }
+        }
+    }
+
+    public void CheckYBlocked()
+    {
+        bool isBlocked = false;
+        foreach (BlockController singleBlockCtrl in SingleBlockCtrl)
+        {
+            int XPos = Pos.XPos + singleBlockCtrl.RelativePos.XPos;
+            int YPos = Pos.YPos + singleBlockCtrl.RelativePos.YPos;
+            // wall check
+            if (YPos < 0)
+            {
+                Pos.YPos = Pos.YPos + 1;
+                isBlocked = true;
+            }
+            // block check
+            if (BlockManager.Spaces[Unit.GetUnitKey(XPos, YPos)].singleBlockControl != null &&
+                BlockManager.Spaces[Unit.GetUnitKey(XPos, YPos)].singleBlockControl.Group != this)
+            {
+                Debug.Log("Blocked");
+
+                Pos.YPos = Pos.YPos + 1;
+                isBlocked = true;
+            }
+        }
+
+        if (isBlocked)
+        {
+            FallOn = false;
             foreach (BlockController singleBlockCtrl in SingleBlockCtrl)
             {
-                // Hit Bottom
-                if ((Pos.YPos + singleBlockCtrl.RelativePos.YPos) == 0)
-                {
-                    isBlocked = true;
-                    break;
-                }
-
-                // Hit Other Blocks
-                if (singleBlockCtrl.IsYBlocked((Pos.XPos + singleBlockCtrl.RelativePos.XPos),
-                    (Pos.YPos + singleBlockCtrl.RelativePos.YPos) - 1))
-                {
-                    isBlocked = true;
-                    break;
-                }
-            }
-
-            if (isBlocked)
-            {
-                // Stacking On Block or Bottom
-                foreach (BlockController singleBlockCtrl in SingleBlockCtrl)
-                {
-                    singleBlockCtrl.SetBlocked();
-                }
-                FallOn = false;
-                FallCount = 0.0f;
-            }
-            else
-            {
-                // Falling
-                Pos.YPos--;
-                foreach (BlockController singleBlockCtrl in SingleBlockCtrl)
-                {
-                    singleBlockCtrl.UpdatePos();
-                }
-                FallCount = 0.0f;
+                singleBlockCtrl.SetBlocked();
             }
         }
     }

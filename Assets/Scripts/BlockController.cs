@@ -5,7 +5,6 @@ using UnityEngine;
 
 public class BlockController : MonoBehaviour
 {
-    public Unit Pos = new Unit();
     public BlockGroup Group;
     public Unit RelativePos = new Unit();
 
@@ -28,59 +27,30 @@ public class BlockController : MonoBehaviour
 
     public void UpdatePos()
     {
-        Pos.NewPos(Group.Pos.XPos + RelativePos.XPos, Group.Pos.YPos + RelativePos.YPos);
-        this.transform.localPosition = new Vector3(Pos.XPos * BlockManager.UnitSize, Pos.YPos * BlockManager.UnitSize, 0);
+        this.transform.localPosition = new Vector3(
+            (Group.Pos.XPos + RelativePos.XPos) * BlockManager.UnitSize,
+            (Group.Pos.YPos + RelativePos.YPos) * BlockManager.UnitSize,
+            0
+        );
     }
 
-    public bool IsXBlocked(int nextXPos, int curYPos)
+    public void RotateLeft()
     {
-        nextXPos += RelativePos.XPos;
-        curYPos += RelativePos.YPos;
-        bool isBlocked = false;
-        for (int i = 0; i < BlockManager.Spaces.Length; i++)
-        {
-            if (BlockManager.Spaces[i].Position.XPos == nextXPos &&
-                BlockManager.Spaces[i].Position.YPos == curYPos)
-            {
-                if (BlockManager.Spaces[i].IsTaken)
-                {
-                    isBlocked = true;
-                }
-                break;
-            }
-        }
-
-        return isBlocked;
+        RelativePos.NewPos(-RelativePos.YPos, RelativePos.XPos);
     }
 
-    public bool IsYBlocked(int curXPos, int nextYPos)
+    public void RotateRight()
     {
-        bool isBlocked = false;
-        for (int i = 0; i < BlockManager.Spaces.Length; i++)
-        {
-            if (BlockManager.Spaces[i].Position.XPos == curXPos &&
-                BlockManager.Spaces[i].Position.YPos == nextYPos)
-            {
-                if (BlockManager.Spaces[i].IsTaken)
-                {
-                    isBlocked = true;
-                }
-                break;
-            }
-        }
-
-        return isBlocked;
+        RelativePos.NewPos(RelativePos.YPos, -RelativePos.XPos);
     }
 
     public void SetBlocked()
     {
-        for (int i = 0; i < BlockManager.Spaces.Length; i++)
-        {
-            if (BlockManager.Spaces[i].Position.YPos == Pos.YPos &&
-                BlockManager.Spaces[i].Position.XPos == Pos.XPos)
-            {
-                BlockManager.Spaces[i].IsTaken = true;
-            }
-        }
+        BlockManager.Spaces[
+            Unit.GetUnitKey(
+                Group.Pos.XPos + RelativePos.XPos,
+                Group.Pos.YPos + RelativePos.YPos
+            )
+        ].singleBlockControl = this;
     }
 }
