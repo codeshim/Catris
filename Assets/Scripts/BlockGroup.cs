@@ -21,7 +21,7 @@ public class BlockGroup : MonoBehaviour
     // Parent Falling Values
     public bool FallOn = false;
     float FallCount = 0.0f;
-    float FallSec = 3.0f;
+    float FallSec = 1.0f;
 
     // Child Component
     public BlockController[] SingleBlockCtrl = new BlockController[4];
@@ -109,10 +109,8 @@ public class BlockGroup : MonoBehaviour
                 Pos.YPos -= 2;
                 break;
         }
-        foreach (BlockController singleBlockCtrl in SingleBlockCtrl)
-        {
-            singleBlockCtrl.UpdatePos();
-        }
+
+        UpdatePos();
     }
 
 
@@ -142,16 +140,14 @@ public class BlockGroup : MonoBehaviour
             if (Input.GetKeyDown(KeyCode.Z))
             {
                 RotateLeft();
-                CheckLeftBlocked();
-                CheckRightBlocked();
+                CheckXBlocked(KeyCode.Z);
                 CheckYBlocked();
             }
 
             if (Input.GetKeyDown(KeyCode.X))
             {
                 RotateRight();
-                CheckLeftBlocked();
-                CheckRightBlocked();
+                CheckXBlocked(KeyCode.X);
                 CheckYBlocked();
             }
 
@@ -163,17 +159,21 @@ public class BlockGroup : MonoBehaviour
                     CheckYBlocked();
                 }
             }
-        }
+            // Falling Over Time
+            FallCount += Time.deltaTime;
+            if (FallCount >= FallSec)
+            {
+                MoveDown();
+                CheckYBlocked();
+                FallCount = 0.0f;
+            }
 
-        // Falling Over Time
-        FallCount += Time.deltaTime;
-        if (FallCount >= FallSec)
-        {
-            MoveDown();
-            CheckYBlocked();
-            FallCount = 0.0f;
+            UpdatePos();
         }
+    }
 
+    public void UpdatePos()
+    {
         foreach (BlockController singleBlockCtrl in SingleBlockCtrl)
         {
             singleBlockCtrl.UpdatePos();
@@ -212,7 +212,30 @@ public class BlockGroup : MonoBehaviour
         }
     }
 
-    public void CheckLeftBlocked()
+    public void CheckXBlocked(KeyCode _KeyCode)
+    {
+        bool LeftWallKick = CheckLeftBlocked();
+        bool RightWallKick = CheckRightBlocked();
+        while (LeftWallKick == true || RightWallKick == true)
+        {
+            if (LeftWallKick == true && RightWallKick == true)
+            {
+                if (_KeyCode == KeyCode.Z)
+                {
+                    RotateRight();
+                }
+                if (_KeyCode == KeyCode.X)
+                {
+                    RotateLeft();
+                }
+                break;
+            }
+            LeftWallKick = CheckLeftBlocked();
+            RightWallKick = CheckRightBlocked();
+        }
+    }
+
+    public bool CheckLeftBlocked()
     {
         foreach (BlockController singleBlockCtrl in SingleBlockCtrl)
         {
@@ -222,17 +245,20 @@ public class BlockGroup : MonoBehaviour
             if (XPos < 0)
             {
                 Pos.XPos = Pos.XPos + 1;
+                return true;
             }
             // block check
             if (BlockManager.Spaces[Unit.GetUnitKey(XPos, YPos)].singleBlockControl != null &&
                 BlockManager.Spaces[Unit.GetUnitKey(XPos, YPos)].singleBlockControl.Group != this)
             {
                 Pos.XPos = Pos.XPos + 1;
+                return true;
             }
         }
+        return false;
     }
 
-    public void CheckRightBlocked()
+    public bool CheckRightBlocked()
     {
         foreach (BlockController singleBlockCtrl in SingleBlockCtrl)
         {
@@ -242,14 +268,17 @@ public class BlockGroup : MonoBehaviour
             if (XPos > BlockManager.XSize)
             {
                 Pos.XPos = Pos.XPos - 1;
+                return true;
             }
             // block check
             if (BlockManager.Spaces[Unit.GetUnitKey(XPos, YPos)].singleBlockControl != null &&
                 BlockManager.Spaces[Unit.GetUnitKey(XPos, YPos)].singleBlockControl.Group != this)
             {
                 Pos.XPos = Pos.XPos - 1;
+                return true;
             }
         }
+        return false;
     }
 
     public void CheckYBlocked()
@@ -269,8 +298,6 @@ public class BlockGroup : MonoBehaviour
             if (BlockManager.Spaces[Unit.GetUnitKey(XPos, YPos)].singleBlockControl != null &&
                 BlockManager.Spaces[Unit.GetUnitKey(XPos, YPos)].singleBlockControl.Group != this)
             {
-                Debug.Log("Blocked");
-
                 Pos.YPos = Pos.YPos + 1;
                 isBlocked = true;
             }
@@ -279,11 +306,39 @@ public class BlockGroup : MonoBehaviour
         if (isBlocked)
         {
             FallOn = false;
-            foreach (BlockController singleBlockCtrl in SingleBlockCtrl)
-            {
-                singleBlockCtrl.SetBlocked();
-            }
+            SetBlocked();
         }
+    }
+
+    public void SetBlocked()
+    {
+        foreach (BlockController singleBlockCtrl in SingleBlockCtrl)
+        {
+            singleBlockCtrl.SetBlocked();
+        }
+        CheckLineClear();
+    }
+
+    public void CheckLineClear()
+    {
+        List<int> ClearedLineYPoses = new List<int>();
+        foreach (BlockController singleBlockCtrl in SingleBlockCtrl)
+        {
+            int Ypos = Pos.YPos + singleBlockCtrl.RelativePos.YPos;
+            bool isCleared = true;
+            for (int i = 0; i < BlockManager.XSize + 1; i++)
+            {
+                if (BlockManager.Spaces[Unit.GetUnitKey(i, Ypos)].singleBlockControl == null)
+                {
+                    isCleared = false;
+                    break;
+                }
+            }
+            if (isCleared) ClearedLineYPoses.Add(Ypos);
+        }
+        ClearedLineYPoses.Sort();
+        ClearedLineYPoses.Reverse();
+        BlockManager.ClearLines(ClearedLineYPoses);
     }
 }
 

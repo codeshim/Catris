@@ -83,4 +83,35 @@ public class BlockManager : MonoBehaviour
             }
         }
     }
+
+    public static void ClearLines(List<int> ClearedLineYPoses)
+    {
+        int ClearedLineCount = 0;
+        foreach (int yPos in ClearedLineYPoses)
+        {
+            for (int x = 0; x < XSize + 1; x++)
+            {
+                string key = Unit.GetUnitKey(x, yPos - ClearedLineCount);
+                BlockController block = Spaces[key].singleBlockControl;
+                Spaces[key].singleBlockControl = null;
+                Destroy(block.gameObject);
+            }
+            for (int y = yPos - ClearedLineCount + 1; y < BlockManager.YSize; y++)
+            {
+                for (int x = 0; x < XSize + 1; x++)
+                {
+                    string key = Unit.GetUnitKey(x, y);
+                    if (Spaces[key].singleBlockControl != null)
+                    {
+                        Debug.Log(key + "-movedown");
+                        BlockController block = Spaces[key].singleBlockControl;
+                        Spaces[key].singleBlockControl = null;
+                        block.MoveDown();
+                        key = Unit.GetUnitKey(x, y - 1);
+                        Spaces[key].singleBlockControl = block;
+                    }
+                }
+            }
+        }
+    }
 }

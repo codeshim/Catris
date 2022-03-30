@@ -34,6 +34,15 @@ public class BlockController : MonoBehaviour
         );
     }
 
+    public void MoveDown()
+    {
+        this.transform.localPosition = new Vector3(
+            (Group.Pos.XPos + RelativePos.XPos) * BlockManager.UnitSize,
+            (Group.Pos.YPos - 1 + RelativePos.YPos) * BlockManager.UnitSize,
+            0
+        );
+    }
+
     public void RotateLeft()
     {
         RelativePos.NewPos(-RelativePos.YPos, RelativePos.XPos);
